@@ -50,10 +50,15 @@ function writeLocalDb(db: Record<string, SharedRoastPayload>) {
   }
 }
 
+function getKvCredentials() {
+  const url = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
+  const token = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
+  return { url, token };
+}
+
 // KV Helper
 async function saveToKv(id: string, payload: SharedRoastPayload): Promise<boolean> {
-  const url = process.env.KV_REST_API_URL;
-  const token = process.env.KV_REST_API_TOKEN;
+  const { url, token } = getKvCredentials();
   if (!url || !token) return false;
 
   try {
@@ -77,8 +82,7 @@ async function saveToKv(id: string, payload: SharedRoastPayload): Promise<boolea
 }
 
 async function getFromKv(id: string): Promise<SharedRoastPayload | null> {
-  const url = process.env.KV_REST_API_URL;
-  const token = process.env.KV_REST_API_TOKEN;
+  const { url, token } = getKvCredentials();
   if (!url || !token) return null;
 
   try {
@@ -115,8 +119,7 @@ export async function POST(req: NextRequest) {
     const payload: SharedRoastPayload = { roast, theme, name, mode, createdAt: new Date().toISOString() };
     const id = generateShortId();
 
-    const url = process.env.KV_REST_API_URL;
-    const token = process.env.KV_REST_API_TOKEN;
+    const { url, token } = getKvCredentials();
 
     if (url && token) {
       // Production path - Cloud KV Storage
@@ -146,8 +149,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Invalid ID parameter" }, { status: 400 });
     }
 
-    const url = process.env.KV_REST_API_URL;
-    const token = process.env.KV_REST_API_TOKEN;
+    const { url, token } = getKvCredentials();
 
     let payload: SharedRoastPayload | null = null;
 
