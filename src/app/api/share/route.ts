@@ -12,10 +12,18 @@ function generateShortId(): string {
   return id;
 }
 
+interface SharedRoastPayload {
+  roast: string;
+  theme: "cyberpunk" | "inferno" | "toxic";
+  name: string;
+  mode: string;
+  createdAt?: string;
+}
+
 // Local File Database Helper (fallback for local development)
 const getLocalDbPath = () => path.join(process.cwd(), "data", "shared_roasts.json");
 
-function readLocalDb(): Record<string, any> {
+function readLocalDb(): Record<string, SharedRoastPayload> {
   try {
     const filePath = getLocalDbPath();
     if (!fs.existsSync(filePath)) {
@@ -29,7 +37,7 @@ function readLocalDb(): Record<string, any> {
   }
 }
 
-function writeLocalDb(db: Record<string, any>) {
+function writeLocalDb(db: Record<string, SharedRoastPayload>) {
   try {
     const filePath = getLocalDbPath();
     const dir = path.dirname(filePath);
@@ -43,7 +51,7 @@ function writeLocalDb(db: Record<string, any>) {
 }
 
 // KV Helper
-async function saveToKv(id: string, payload: any): Promise<boolean> {
+async function saveToKv(id: string, payload: SharedRoastPayload): Promise<boolean> {
   const url = process.env.KV_REST_API_URL;
   const token = process.env.KV_REST_API_TOKEN;
   if (!url || !token) return false;
@@ -68,7 +76,7 @@ async function saveToKv(id: string, payload: any): Promise<boolean> {
   }
 }
 
-async function getFromKv(id: string): Promise<any | null> {
+async function getFromKv(id: string): Promise<SharedRoastPayload | null> {
   const url = process.env.KV_REST_API_URL;
   const token = process.env.KV_REST_API_TOKEN;
   if (!url || !token) return null;
@@ -104,7 +112,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Roast content is required" }, { status: 400 });
     }
 
-    const payload = { roast, theme, name, mode, createdAt: new Date().toISOString() };
+    const payload: SharedRoastPayload = { roast, theme, name, mode, createdAt: new Date().toISOString() };
     const id = generateShortId();
 
     const url = process.env.KV_REST_API_URL;
@@ -141,7 +149,7 @@ export async function GET(req: NextRequest) {
     const url = process.env.KV_REST_API_URL;
     const token = process.env.KV_REST_API_TOKEN;
 
-    let payload: any = null;
+    let payload: SharedRoastPayload | null = null;
 
     if (url && token) {
       payload = await getFromKv(id);

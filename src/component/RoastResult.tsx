@@ -15,6 +15,13 @@ interface RoastResultProps {
   isSharedView?: boolean;
 }
 
+interface SharedPayload {
+  roast: string;
+  theme: "cyberpunk" | "inferno" | "toxic";
+  name: string;
+  mode: string;
+}
+
 export default function RoastResult({
   roast,
   onReset,
@@ -42,7 +49,7 @@ export default function RoastResult({
     setToastMessage("Roast text copied! 🔥");
   };
 
-  const getShareUrl = async (payload: any): Promise<string> => {
+  const getShareUrl = async (payload: SharedPayload): Promise<string> => {
     const jsonString = JSON.stringify(payload);
     const compressed = LZString.compressToEncodedURIComponent(jsonString);
     const fallbackUrl = `${window.location.origin}/?share=${compressed}`;
